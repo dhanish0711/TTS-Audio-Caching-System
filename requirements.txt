@@ -1,0 +1,7 @@
+fastapi>=0.104.0
+uvicorn>=0.24.0
+pydantic>=2.0.0
+pytest>=7.4.0
+httpx>=0.25.0
+gTTS>=2.5.0
+difflib-dummy>=0.0.0;python_version<"0"
