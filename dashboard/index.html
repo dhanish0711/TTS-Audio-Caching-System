@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="TTS Audio Caching System — AI-powered cache with analytics, real-time monitoring, and smart features.">
+    <title>TTS Audio Cache — AI Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Canvas Particles -->
+    <canvas id="particlesCanvas" class="particles-canvas"></canvas>
+
+    <!-- Ambient Background -->
+    <div class="bg-mesh"></div>
+    <div class="bg-orb bg-orb-1"></div>
+    <div class="bg-orb bg-orb-2"></div>
+    <div class="bg-orb bg-orb-3"></div>
+
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                    </svg>
+                </div>
+                <div>
+                    <h1>TTS Audio Cache</h1>
+                    <p class="header-subtitle">AI-Powered Cache System &middot; Voice Interview Engine</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-badges">
+                    <div class="feature-badge ai-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                        AI Powered
+                    </div>
+                    <div class="feature-badge compress-badge" id="compressionBadge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Compressed
+                    </div>
+                </div>
+                <div class="status-badge" id="serverStatus">
+                    <span class="status-dot"></span>
+                    <span>Connected</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Cards Row -->
+        <section class="stats-grid" id="statsGrid">
+            <div class="stat-card stat-card-glow-indigo">
+                <div class="stat-icon stat-icon-entries">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Cached Entries</span>
+                    <span class="stat-value" id="statEntries">0</span>
+                    <span class="stat-sub" id="statMaxEntries">/ 1000 max</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-glow-emerald">
+                <div class="stat-icon stat-icon-hitrate">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Hit Rate</span>
+                    <span class="stat-value" id="statHitRate">0%</span>
+                    <span class="stat-sub" id="statHitMiss">0 hits / 0 misses</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-glow-amber">
+                <div class="stat-icon stat-icon-size">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 20h20"/><path d="M5 20V10"/><path d="M9 20V4"/><path d="M13 20V14"/><path d="M17 20V8"/><path d="M21 20V2"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Cache Size</span>
+                    <span class="stat-value" id="statSize">0 KB</span>
+                    <span class="stat-sub" id="statCompression">Compression: --</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-glow-cyan">
+                <div class="stat-icon stat-icon-latency">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">Avg Latency</span>
+                    <div class="latency-pair">
+                        <span class="latency-hit" id="statAvgHit">0 ms</span>
+                        <span class="latency-divider">/</span>
+                        <span class="latency-miss" id="statAvgMiss">0 ms</span>
+                    </div>
+                    <span class="stat-sub">hit / miss</span>
+                </div>
+            </div>
+            <div class="stat-card stat-card-glow-violet">
+                <div class="stat-icon stat-icon-fuzzy">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                </div>
+                <div class="stat-content">
+                    <span class="stat-label">AI Fuzzy Hits</span>
+                    <span class="stat-value" id="statFuzzyHits">0</span>
+                    <span class="stat-sub">smart matches</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Row -->
+        <section class="charts-grid">
+            <div class="panel chart-panel">
+                <div class="panel-header">
+                    <h2>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                        Latency History
+                    </h2>
+                </div>
+                <div class="chart-body">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+            </div>
+            <div class="panel chart-panel chart-panel-sm">
+                <div class="panel-header">
+                    <h2>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/><path d="M12 2v20"/></svg>
+                        Hit / Miss Ratio
+                    </h2>
+                </div>
+                <div class="chart-body chart-body-doughnut">
+                    <canvas id="hitMissChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Grid -->
+        <div class="main-grid">
+            <!-- TTS Tester Panel -->
+            <section class="panel tester-panel">
+                <div class="panel-header">
+                    <h2>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        TTS Synthesizer
+                    </h2>
+                    <div class="engine-badge" id="engineBadge">Google TTS</div>
+                </div>
+                <div class="tester-body">
+                    <div class="input-group">
+                        <label for="ttsText">Text to Synthesize</label>
+                        <textarea id="ttsText" placeholder="Type a prompt or question to synthesize..." rows="3">Tell me about yourself and your experience.</textarea>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="voiceId">Voice / Accent</label>
+                            <select id="voiceId">
+                                <option value="default">Default (US)</option>
+                                <option value="female-1">British</option>
+                                <option value="male-1">Australian</option>
+                                <option value="female-2">Indian</option>
+                                <option value="male-2">Canadian</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="speed">Speed</label>
+                            <input type="number" id="speed" value="1.0" min="0.25" max="4.0" step="0.25">
+                        </div>
+                        <div class="input-group">
+                            <label for="pitch">Pitch</label>
+                            <input type="number" id="pitch" value="1.0" min="0.5" max="2.0" step="0.1">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-glow" id="synthesizeBtn" onclick="synthesize()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Synthesize
+                    </button>
+
+                    <!-- Result Display -->
+                    <div class="result-area" id="resultArea" style="display:none;">
+                        <div class="result-header">
+                            <div class="result-badges">
+                                <span class="result-badge" id="resultBadge">CACHE HIT</span>
+                                <span class="result-badge fuzzy-badge" id="fuzzyBadge" style="display:none;">AI MATCH</span>
+                            </div>
+                            <span class="result-latency" id="resultLatency">0 ms</span>
+                        </div>
+                        <div class="latency-bar-container">
+                            <div class="latency-bar" id="latencyBar"></div>
+                        </div>
+
+                        <!-- Real-time Waveform Canvas -->
+                        <div class="waveform-container">
+                            <canvas id="waveformCanvas" class="waveform-canvas"></canvas>
+                        </div>
+
+                        <audio controls id="audioPlayer" class="audio-player"></audio>
+
+                        <!-- Predictive Caching Notification -->
+                        <div class="predictive-notify" id="predictiveNotify" style="display:none;">
+                            <span class="predictive-dot"></span>
+                            <span id="predictiveNotifyText">Predicting next prompt...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Controls + Warming -->
+            <div class="right-column">
+                <!-- Cache Controls -->
+                <section class="panel controls-panel">
+                    <div class="panel-header">
+                        <h2>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68 1.65 1.65 0 0 0 10 3.17V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                            Controls
+                        </h2>
+                    </div>
+                    <div class="controls-body">
+                        <button class="btn btn-secondary" onclick="cleanupExpired()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                            Cleanup Expired
+                        </button>
+                        <button class="btn btn-danger" onclick="clearCache()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                            Clear All
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Cache Warming -->
+                <section class="panel warmup-panel">
+                    <div class="panel-header">
+                        <h2>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            AI Cache Warming
+                        </h2>
+                    </div>
+                    <div class="warmup-body">
+                        <p class="warmup-desc">Pre-cache common interview prompts to eliminate latency for frequently asked questions.</p>
+                        <button class="btn btn-warm" id="warmupBtn" onclick="warmupCache()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                            Warm Up Cache
+                        </button>
+                        <div class="warmup-result" id="warmupResult" style="display:none;"></div>
+                    </div>
+                </section>
+
+                <!-- Smart Recommendations -->
+                <section class="panel recommendations-panel">
+                    <div class="panel-header">
+                        <h2>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                            Smart Recommendations
+                        </h2>
+                    </div>
+                    <div class="recommendations-body" id="recsBody">
+                        <div class="recs-loading">Loading suggestions...</div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Request Timeline -->
+        <section class="panel timeline-panel">
+            <div class="panel-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Recent Requests
+                </h2>
+                <span class="badge badge-neutral" id="requestCount">0 requests</span>
+            </div>
+            <div class="timeline-body" id="timelineBody">
+                <div class="timeline-empty" id="timelineEmpty">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <p>No requests yet</p>
+                </div>
+                <div class="timeline-list" id="timelineList" style="display:none;"></div>
+            </div>
+        </section>
+
+        <!-- Cache Entries Table -->
+        <section class="panel entries-panel">
+            <div class="panel-header">
+                <h2>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    Cached Entries
+                </h2>
+                <span class="badge badge-neutral" id="entriesCount">0 entries</span>
+            </div>
+            
+            <!-- Table Controls (Search and Filters) -->
+            <div class="table-controls-bar">
+                <div class="search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="searchEntries" placeholder="Search cached texts..." oninput="filterEntries()">
+                </div>
+                <div class="filter-group">
+                    <select id="filterVoice" onchange="filterEntries()">
+                        <option value="all">All Voices</option>
+                    </select>
+                    <select id="filterDate" onchange="filterEntries()">
+                        <option value="all">All Time</option>
+                        <option value="10m">Last 10 minutes</option>
+                        <option value="1h">Last hour</option>
+                        <option value="today">Today</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="entries-body">
+                <div class="table-empty" id="tableEmpty">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    <p id="emptyStateMessage">No cached entries yet</p>
+                    <span id="emptyStateSub">Use the synthesizer or cache warming to generate entries</span>
+                </div>
+                <div class="table-container" id="tableContainer" style="display:none;">
+                    <table class="entries-table">
+                        <thead>
+                            <tr>
+                                <th>Text</th>
+                                <th>Voice</th>
+                                <th>Size</th>
+                                <th>Saved</th>
+                                <th>Hits</th>
+                                <th>Age</th>
+                                <th>Preview</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="entriesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hidden elements for audio playback analysis -->
+        <audio id="inlineAudioPlayer" style="display:none;"></audio>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>TTS Audio Caching System &middot; Task 7 &middot; AI-Powered Voice Interview Engine</p>
+        </footer>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
